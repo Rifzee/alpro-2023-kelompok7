@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <!-- TensorFlow.js and Posenet -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.8.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.2/dist/posenet.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <title>Carupat.AI</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .gambar-setengah-layar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            /* Meletakkan gambar di belakang kontennya */
+        }
+
+        .konten {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            /* Menempatkan konten di sebelah kanan */
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Tambahkan gaya tambahan jika dibutuhkan */
+        .navbar {
+            z-index: 1;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #ffffff;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow:scroll;
+            margin-top: 56px;
+            /* Tinggi navbar, disesuaikan sesuai kebutuhan */
+            right: 0;
+        }
+
+        .input-form {
+            background-color: #fffffff3;
+            /* Warna latar belakang form input */
+            padding: 20px;
+            border: px solid #001f3f;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            color: #000000;
+            /* Warna teks putih */
+            align-items: right;
+            align-content: right;
+            align-self: right;
+            right: 0
+        }
+
+        .input-form label {
+            color: #00096d;
+            /* Warna teks label putih */
+            font-weight: bold;
+        }
+
+        .input-form select,
+        .input-form button {
+            background-color: #90bad9;
+            /* Warna tombol dan dropdown */
+            color: #00096d;
+            /* Warna teks tombol dan dropdown */
+        }
+
+        .input-form select:hover,
+        .input-form button:hover {
+            background-color: #aedaf4;
+            /* Warna tombol dan dropdown saat dihover */
+        }
+
+        .input-form input[type="file"] {
+            color: #00096d;
+            /* Warna teks input file */
+        }
+
+        .input-form input[type="file"]::before {
+            border-color: #00096d;
+            /* Warna border input file */
+        }
+
+        .navbar-nav .nav-link.active {
+            color: #757c7d;
+            /* Ganti dengan warna yang Anda inginkan */
+            font-weight: bold;
+            /* Tambahkan jika Anda ingin teks menjadi bold saat aktif */
+            background-color: #dfe7e8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+            <!-- Form Input -->
+            <div class="input-form">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="gender">Gender:</label>
+                        <select id="gender" class="form-select">
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="size">Standard Size:</label>
+                        <select id="size" class="form-select">
+                            <option value="us">USA</option>
+                            <option value="eu">EUROPE</option>
+                            <option value="sni">SNI</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="clothingType">Jenis Baju yang Dicari:</label>
+                        <select id="clothingType" class="form-select">
+                            <option value="kemeja">Kemeja</option>
+                            <option value="tshirt">T-Shirt</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <!-- Image Input and Result -->
+            <div class="input-form">
+                <div class="row">
+                    <div class="col-md-7">
+                        <label>Upload fotomu dengan ketentuan jarak kamera dengan badan adalah 2 meter dan pose berdiri tegak.</label>
+                        <input type="file" accept="image/*" id="fileInput" class="mt-3">
+                        <p></p>
+                    </div>
+                    <div class="col-md-8">
+                        <div id="result">
+                            <img id="resultImage" style="display: none;" alt="Result Image">
+                            <label>Estimasi ukuranmu adalah:</label>
+                            <p id="panjangBahu">Panjang Bahu:  cm</p>
+                            <p id="panjangBadan">Panjang Badan:  cm</p>
+                            <p id="panjangLengan">Panjang Lengan:  cm</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const resultImageElement = document.getElementById('resultImage');
+        // document.getElementById('homeButton').addEventListener('click', function () {
+        //     // Gantilah URL sesuai dengan halaman utama Anda
+        //     window.location.href = 'http://127.0.0.1:5500/carupat.html';
+        // });
+        fileInput.addEventListener('change', function () {
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    // Resize image to 1080x1350
+                    resizeImage(e.target.result, 480, 640, function (resizedDataUrl) {
+                        resultImageElement.src = resizedDataUrl;
+                        resultImageElement.style.display = 'block';
+
+                        // Perform pose estimation when the image is loaded
+                        performPoseEstimation();
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        async function performPoseEstimation() {
+            const net = await posenet.load({
+                architecture: 'ResNet50',
+                outputStride: 32,
+                inputResolution: { width: 1920, height: 1080 },
+                quantBytes: 2
+            });
+
+            const pose = await net.estimateSinglePose(resultImageElement, {
+                flipHorizontal: true
+            });
+
+            console.log(pose.keypoints);
+
+            // Check if any keypoint score is below 0.3
+            const lowScore = pose.keypoints.some(keypoint => keypoint.score < 0.3);
+
+            if (lowScore) {
+                alert('Some keypoints have low confidence score. Please choose another image.');
+                return;
+            }
+
+            // Continue processing if all scores are acceptable
+            const rightshoulderpositionx = pose.keypoints[6].position.x;
+            const rightshoulderpositiony = pose.keypoints[6].position.y;
+            const leftshoulderpositionx = pose.keypoints[5].position.x;
+            const leftshoulderpositiony = pose.keypoints[5].position.y;
+            const rightwristposition = pose.keypoints[10].position.y;
+            const leftwristposition = pose.keypoints[9].position.y;
+            const righthipposition = pose.keypoints[12].position.y;
+            const lefthipposition = pose.keypoints[11].position.y;
+            const rawpanjangbahu = rightshoulderpositionx - leftshoulderpositionx;
+            const rawpanjangbadan = righthipposition - rightshoulderpositiony;
+            const rawpanjanglengan = rightwristposition - rightshoulderpositiony;
+            const dpi = 96; // You can change the DPI value as needed
+
+            // Conversion from pixels to centimeters (assuming DPI = 96)
+            const cmPerInch = 2.54;
+            const panjangbahu_cm = (rawpanjangbahu / dpi) * cmPerInch * 17.680;
+            const panjangbadan_cm = (rawpanjangbadan / dpi) * cmPerInch * 19.890;
+            const panjanglengan_cm = (rawpanjanglengan / dpi) * cmPerInch * 19.608;
+
+            // Display the results in HTML
+            const panjangBahuDiv = document.getElementById('panjangBahu');
+            const panjangBadanDiv = document.getElementById('panjangBadan');
+            const panjangLenganDiv = document.getElementById('panjangLengan');
+
+            panjangBahuDiv.textContent = `Panjang Bahu: ${panjangbahu_cm.toFixed(2)} cm`;
+            panjangBadanDiv.textContent = `Panjang Badan: ${panjangbadan_cm.toFixed(2)} cm`;
+            panjangLenganDiv.textContent = `Panjang Lengan: ${panjanglengan_cm.toFixed(2)} cm`;
+        }
+
+        function resizeImage(dataUrl, width, height, callback) {
+            const img = new Image();
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const resizedDataUrl = canvas.toDataURL('image/jpeg');
+                callback(resizedDataUrl);
+            };
+            img.src = dataUrl;
+        }
+    </script>
+</body>
+
+</html>
