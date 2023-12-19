@@ -60,7 +60,8 @@
             position: relative;
             width: 100%;
             height: 100vh;
-            overflow:scroll;
+            overflow: auto;
+            /* Change from scroll to auto */
             margin-top: 56px;
             /* Tinggi navbar, disesuaikan sesuai kebutuhan */
             right: 0;
@@ -124,61 +125,59 @@
 
 <body>
     <div class="container">
-            <!-- Form Input -->
-            <div class="input-form">
-                <div class="row">
-                    <div class="col-md-4">
-                        <label for="gender">Gender:</label>
-                        <select id="gender" class="form-select">
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="size">Standard Size:</label>
-                        <select id="size" class="form-select">
-                            <option value="us">USA</option>
-                            <option value="eu">EUROPE</option>
-                            <option value="sni">SNI</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="clothingType">Jenis Baju yang Dicari:</label>
-                        <select id="clothingType" class="form-select">
-                            <option value="kemeja">Kemeja</option>
-                            <option value="tshirt">T-Shirt</option>
-                        </select>
-                    </div>
+        <!-- Form Input -->
+        <div class="input-form">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="gender">Gender:</label>
+                    <select id="gender" class="form-select">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="size">Standard Size:</label>
+                    <select id="size" class="form-select">
+                        <option value="us">USA</option>
+                        <option value="eu">EUR</option>
+                        <option value="sni">SNI</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="clothingType">Jenis Baju yang Dicari:</label>
+                    <select id="clothingType" class="form-select">
+                        <option value="kemeja">Kemeja</option>
+                        <option value="tshirt">T-Shirt</option>
+                    </select>
                 </div>
             </div>
-            <!-- Image Input and Result -->
-            <div class="input-form">
-                <div class="row">
-                    <div class="col-md-7">
-                        <label>Upload fotomu dengan ketentuan jarak kamera dengan badan adalah 2 meter dan pose berdiri tegak.</label>
-                        <input type="file" accept="image/*" id="fileInput" class="mt-3">
-                        <p></p>
-                    </div>
-                    <div class="col-md-8">
-                        <div id="result">
-                            <img id="resultImage" style="display: none;" alt="Result Image">
-                            <label>Estimasi ukuranmu adalah:</label>
-                            <p id="panjangBahu">Panjang Bahu:  cm</p>
-                            <p id="panjangBadan">Panjang Badan:  cm</p>
-                            <p id="panjangLengan">Panjang Lengan:  cm</p>
-                        </div>
+        </div>
+        <!-- Image Input and Result -->
+        <div class="input-form">
+            <div class="row">
+                <div class="col-md-7">
+                    <label>Upload fotomu dengan ketentuan jarak kamera dengan badan adalah 2 meter dan pose berdiri
+                        tegak.</label>
+                    <input type="file" accept="image/*" id="fileInput" class="mt-3">
+                    <p></p>
+                </div>
+                <div class="col-md-8">
+                    <div id="result">
+                        <img id="resultImage" style="display: none;" alt="Result Image">
+                        <label>Estimasi ukuranmu adalah:</label>
+                        <p id="panjangBahu">Panjang Bahu: cm</p>
+                        <p id="panjangBadan">Panjang Badan: cm</p>
+                        <p id="panjangLengan">Panjang Lengan: cm</p>
+                        <p id="lingkarDada">Lingkar Dada: +/- cm</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    </div>
     <script>
         const fileInput = document.getElementById('fileInput');
         const resultImageElement = document.getElementById('resultImage');
-        // document.getElementById('homeButton').addEventListener('click', function () {
-        //     // Gantilah URL sesuai dengan halaman utama Anda
-        //     window.location.href = 'http://127.0.0.1:5500/carupat.html';
-        // });
         fileInput.addEventListener('change', function () {
             const file = fileInput.files[0];
             if (file) {
@@ -235,20 +234,142 @@
 
             // Conversion from pixels to centimeters (assuming DPI = 96)
             const cmPerInch = 2.54;
-            const panjangbahu_cm = (rawpanjangbahu / dpi) * cmPerInch * 17.680;
-            const panjangbadan_cm = (rawpanjangbadan / dpi) * cmPerInch * 19.890;
-            const panjanglengan_cm = (rawpanjanglengan / dpi) * cmPerInch * 19.608;
+            const panjangbahu_cm = (rawpanjangbahu / dpi) * cmPerInch * 16.2;
+            const panjangbadan_cm = (rawpanjangbadan / dpi) * cmPerInch * 16.2;
+            const panjanglengan_cm = (rawpanjanglengan / dpi) * cmPerInch * 16.2;
+            const lingkardada_cm = panjangbahu_cm * 2.5
 
-            // Display the results in HTML
+            const selectedGender = document.getElementById('gender').value;
+            const selectedSize = document.getElementById('size').value;
+
+            // Perform sizing based on gender and size
+            const estimatedSize = getSize(selectedGender, selectedSize, panjangbahu_cm);
+
+            // Display the estimated size
             const panjangBahuDiv = document.getElementById('panjangBahu');
             const panjangBadanDiv = document.getElementById('panjangBadan');
             const panjangLenganDiv = document.getElementById('panjangLengan');
-
+            const lingkarDadaDiv = document.getElementById('lingkarDada');
             panjangBahuDiv.textContent = `Panjang Bahu: ${panjangbahu_cm.toFixed(2)} cm`;
             panjangBadanDiv.textContent = `Panjang Badan: ${panjangbadan_cm.toFixed(2)} cm`;
             panjangLenganDiv.textContent = `Panjang Lengan: ${panjanglengan_cm.toFixed(2)} cm`;
+            lingkarDadaDiv.textContent = `Lingkar Dada: ${lingkardada_cm.toFixed(2)}cm`;
+
+            // Display the estimated size
+            alert(`Estimated Size: ${estimatedSize}`);
         }
 
+
+        function getSize(gender, size, panjangBahu) {
+            if (gender === 'female') {
+                if (size === 'sni') {
+                    if (panjangBahu <= 37) {
+                        return 'S';
+                    } else if (panjangBahu <= 39) {
+                        return 'M';
+                    } else if (panjangBahu <= 41) {
+                        return 'L';
+                    } else if (panjangBahu <= 43) {
+                        return 'XL';
+                    } else if (panjangBahu <= 45) {
+                        return 'XXL';
+                    } else if (panjangBahu <= 48) {
+                        return 'XXXL';
+                    } else {
+                        return 'Ukuran Tidak Tersedia';
+                    }
+                } else if (size === 'us') {
+                    if (panjangBahu <= 38) {
+                        return '4';
+                    } else if (panjangBahu <= 40) {
+                        return '6';
+                    } else if (panjangBahu <= 41) {
+                        return '8';
+                    } else if (panjangBahu <= 42) {
+                        return '10';
+                    } else if (panjangBahu <= 43) {
+                        return '12';
+                    } else if (panjangBahu <= 44) {
+                        return '14';
+                    } else if (panjangBahu <= 45) {
+                        return '16';
+                    } else if (panjangBahu <= 46) {
+                        return '18';
+                    } else {
+                        return 'Ukuran Tidak Tersedia';
+                    }
+                } else if (size === 'eu') {
+                    if (panjangBahu <= 38) {
+                        return 'S';
+                    } else if (panjangBahu <= 41) {
+                        return 'M';
+                    } else if (panjangBahu <= 43) {
+                        return 'L';
+                    } else if (panjangBahu <= 45) {
+                        return 'XL';
+                    } else if (panjangBahu <= 47) {
+                        return 'XXL';
+                    } else if (panjangBahu <= 49) {
+                        return 'XXXL';
+                    } else {
+                        return 'Ukuran Tidak Tersedia';
+                    }
+                }
+            } else if (gender === 'male') {
+                if (size === 'sni') {
+                    if (panjangBahu <= 40) {
+                        return 'S';
+                    } else if (panjangBahu <= 43) {
+                        return 'M';
+                    } else if (panjangBahu <= 45) {
+                        return 'L';
+                    } else if (panjangBahu <= 48) {
+                        return 'XL';
+                    } else if (panjangBahu <= 50) {
+                        return 'XXL';
+                    } else if (panjangBahu <= 53) {
+                        return 'XXXL';
+                    } else {
+                        return 'Ukuran Tidak Tersedia';
+                    }
+                } else if (size === 'us') {
+                    if (panjangBahu <= 40) {
+                        return 'S';
+                    } else if (panjangBahu <= 43) {
+                        return 'M';
+                    } else if (panjangBahu <= 45) {
+                        return 'L';
+                    } else if (panjangBahu <= 48) {
+                        return 'XL';
+                    } else if (panjangBahu <= 50) {
+                        return 'XXL';
+                    } else if (panjangBahu <= 53) {
+                        return 'XXXL';
+                    } else {
+                        return 'Ukuran Tidak Tersedia';
+                    }
+                } else if (size === 'eu') {
+                    if (panjangBahu <= 38) {
+                        return 'S';
+                    } else if (panjangBahu <= 41) {
+                        return 'M';
+                    } else if (panjangBahu <= 43) {
+                        return 'L';
+                    } else if (panjangBahu <= 45) {
+                        return 'XL';
+                    } else if (panjangBahu <= 47) {
+                        return 'XXL';
+                    } else if (panjangBahu <= 49) {
+                        return 'XXXL';
+                    } else {
+                        return 'Ukuran Tidak Tersedia';
+                    }
+                }
+            }
+
+            // Default size if no matching criteria
+            return 'Unknown Size';
+        }
         function resizeImage(dataUrl, width, height, callback) {
             const img = new Image();
             img.onload = function () {
